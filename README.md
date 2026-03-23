@@ -9,27 +9,51 @@ The core optimization engine is built entirely from scratch using **Wolfe's Modi
 ### 1. The Markowitz Portfolio Model
 Our goal is to find the optimal asset weights $w$ (in percentages, $\sum w_i = 100$) that minimize the portfolio variance for a given target return constraint $T$.
 
+
 $$
-\begin{align*}
+\begin{aligned}
 \min_{w} \quad & \frac{1}{2} w^T (2\Sigma) w \\
-\text{subject to:} \quad 
-& \sum_{i=1}^n w_i = 100 \quad \text{(Fully invested)} \\
-& \sum_{i=1}^n r_i w_i \ge 100 \cdot T \quad \text{(Target return constraint)} \\
-& w \ge 0 \quad \text{(No short-selling)}
-\end{align*}
+\text{subject to} \quad & \mathbf{1}^T w = 100 \\
+& r^T w \ge 100 \cdot T \\
+& w_i \ge 0, \quad \forall i \in \{1, \dots, n\}
+\end{aligned}
 $$
+
+### Parameter Definitions
+* **$w$**: Vector of weights (allocations) for each asset.
+* **$\Sigma$**: Covariance matrix of asset returns, representing risk.
+* **$r$**: Vector of expected returns for each asset.
+* **$T$**: Target return threshold.
+* **$\mathbf{1}^T w = 100$**: The budget constraint ensuring 100% capital allocation.
+* **$w \ge 0$**: The non-negativity constraint (long-only positions).
+
 where $\Sigma$ is the covariance matrix of asset returns, and $r$ is the vector of expected returns.
 
 ### 2. Wolfe's Modified Simplex Method
 The Markowitz model is a Quadratic Programming (QP) problem. Wolfe's method cleverly transforms convex QP problems into Linear Complementarity Problems (LCPs), which can then be solved using an augmented Simplex algorithm.
 
 The Lagrangian of the QP yields the **KKT Stationarity Conditions**:
-$$ Qw - s + A_{eq}^T \lambda + A_{ub}^T \mu = -c $$
-where:
-* $Q = 2\Sigma$
-* $s \ge 0$ are the slack variables for $w \ge 0$
-* $\lambda$ are the multipliers for equality constraints
-* $\mu$ are the multipliers for inequality constraints
+
+$$
+\begin{aligned}
+Qw - s + A_{eq}^T \lambda + A_{ub}^T \mu = -c
+\end{aligned}
+$$
+
+#### Variable Definitions:
+* **$Q = 2\Sigma$**: The Hessian of the objective function (where $\Sigma$ is the covariance matrix).
+* **$s \in \mathbb{R}^n, s \ge 0$**: Vector of dual variables (slacks) associated with the non-negativity constraint $w \ge 0$.
+* **$\lambda$**: Lagrange multipliers associated with the equality constraints ($A_{eq} w = b_{eq}$).
+* **$\mu$**: Lagrange multipliers associated with the inequality constraints ($A_{ub} w \le b_{ub}$).
+* **$c$**: The linear term of the objective function (typically zero in pure variance minimization).
+
+#### Complementary Slackness:
+$$
+\begin{aligned}
+s_i w_i &= 0, \quad \forall i \in \{1, \dots, n\} \\
+\mu_j (A_{ub} w - b_{ub})_j &= 0, \quad \forall j \in \{1, \dots, m\}
+\end{aligned}
+$$
 
 Wolfe's method sets up a **Big-M LP Tableau** to minimize a set of artificial variables (Phase I of the Simplex method) placed into the stationarity rows to find a feasible starting basis.
 
