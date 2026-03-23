@@ -474,30 +474,11 @@ if __name__ == "__main__":
     print("  Wolfe QP Solver — Self-Test")
     print("─" * 55)
 
-    # Example 1: min x1^2 + x2^2  s.t. x1 + x2 = 1, x >= 0
-    # Analytic optimum: x = [0.5, 0.5], obj = 0.5
-    Q1 = np.eye(2) * 2
-    c1 = np.zeros(2)
-    A1 = np.array([[1.0, 1.0]])
-    b1 = np.array([1.0])
+    Q = np.array([[0.0128, 0.00576], [0.00576, 0.0288]])
+    c = np.array([0., 0.])
+    A = np.array([[1.0, 1.0]])
+    b = np.array([1.0])
 
-    r1 = solve_qp_wolfe(Q1, c1, A_eq=A1, b_eq=b1)
-    print(f"\nExample 1 (equal weights, unit simplex):")
+    r1 = solve_qp_wolfe(Q, c, A_eq=A, b_eq=b)
+    print(f"\nManual Problem:")
     print(f"  {r1}")
-    print(f"  Expected x ≈ [0.5, 0.5], obj ≈ 0.5")
-
-    # Example 2: min (x1-1)^2 + (x2-2)^2  s.t. x1+x2<=3, x>=0
-    # = min x1^2 + x2^2 - 2x1 - 4x2 + 5  →  Q=2I, c=[-2,-4]
-    # Unconstrained min at (1,2), feasible, so optimal = (1,2), obj = 0
-    Q2 = np.eye(2) * 2
-    c2 = np.array([-2.0, -4.0])
-    A2 = np.array([[1.0, 1.0]])
-    b2 = np.array([3.0])
-
-    r2 = solve_qp_wolfe(Q2, c2, A_ub=A2, b_ub=b2)
-    print(f"\nExample 2 (unconstrained min within feasible region):")
-    print(f"  {r2}")
-    print(f"  Expected x ≈ [1.0, 2.0], obj ≈ -5.0  (i.e. (1-1)^2+(2-2)^2 - const)")
-
-    print("\n  Self-test complete.")
-    print("─" * 55)
